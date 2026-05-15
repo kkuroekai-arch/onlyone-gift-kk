@@ -83,27 +83,59 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   background: var(--bg);
   z-index: 9999;
   display: flex; align-items: center; justify-content: center;
-  transition: opacity .8s var(--ease), visibility .8s var(--ease);
+  transition: opacity 1s var(--ease), visibility 1s var(--ease);
 }
 .loaded .loader { opacity: 0; visibility: hidden; }
-.loader-mark {
+.loader-inner {
+  display: flex; flex-direction: column;
+  align-items: center;
+}
+.loader-brand {
+  display: flex; align-items: baseline; gap: 12px;
   font-family: var(--en); font-weight: 800;
-  font-size: 28px; letter-spacing: -0.04em;
-  position: relative;
-  display: flex; align-items: baseline; gap: 6px;
+  letter-spacing: -0.04em;
+  overflow: hidden;
+  padding: 0 4px;
+  margin-bottom: 32px;
 }
-.loader-mark::after {
-  content: ''; position: absolute;
-  bottom: -8px; left: 0;
-  width: 100%; height: 2px;
+.loader-brand-name, .loader-brand-suffix {
+  display: inline-block;
+  transform: translateY(120%);
+  animation: loaderSlideUp .9s var(--ease) forwards;
+}
+.loader-brand-name { font-size: 40px; animation-delay: .2s; }
+.loader-brand-suffix {
+  font-size: 17px; font-weight: 500; color: var(--ink-light);
+  animation-delay: .5s;
+}
+@keyframes loaderSlideUp {
+  to { transform: translateY(0); }
+}
+.loader-bar {
+  width: 240px; height: 2px;
+  background: var(--line);
+  position: relative; overflow: hidden;
+  border-radius: 999px;
+  margin-bottom: 20px;
+}
+.loader-bar span {
+  position: absolute; inset: 0;
   background: linear-gradient(90deg, var(--yellow), var(--orange), var(--coral), var(--purple));
+  transform: scaleX(0);
   transform-origin: left;
-  animation: loaderBar 1.2s var(--ease) infinite;
+  animation: loaderFill 1.6s var(--ease) 1s forwards;
 }
-.loader-mark span { font-size: 14px; color: var(--ink-light); font-weight: 500; }
-@keyframes loaderBar {
-  0% { transform: scaleX(0); }
-  60%, 100% { transform: scaleX(1); }
+@keyframes loaderFill {
+  to { transform: scaleX(1); }
+}
+.loader-tag {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ink-light); letter-spacing: 0.25em;
+  opacity: 0;
+  animation: loaderFadeIn .7s var(--ease) 2s forwards;
+}
+@keyframes loaderFadeIn {
+  to { opacity: 1; }
 }
 
 /* ========== Custom Cursor (desktop only) ========== */
@@ -468,6 +500,13 @@ section { padding: 140px 0; position: relative; }
   font-style: normal;
   background: linear-gradient(120deg, var(--blue), var(--purple));
   -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* Mobile-only line break helper */
+.br-sp { display: none; }
+@media (max-width: 640px) {
+  .br-sp { display: inline; }
+  .sec-title { font-size: 28px; letter-spacing: -0.03em; line-height: 1.3; }
 }
 
 /* ========== Service ========== */
@@ -902,7 +941,14 @@ footer {
 
 <!-- ========== Loader ========== -->
 <div class="loader">
-  <div class="loader-mark">K&amp;k<span>Co., Ltd.</span></div>
+  <div class="loader-inner">
+    <div class="loader-brand">
+      <span class="loader-brand-name">K&amp;k</span>
+      <span class="loader-brand-suffix">Co., Ltd.</span>
+    </div>
+    <div class="loader-bar"><span></span></div>
+    <div class="loader-tag">WEB · LP · PRODUCTION</div>
+  </div>
 </div>
 
 <!-- ========== Custom Cursor ========== -->
@@ -1212,7 +1258,7 @@ footer {
       <div class="price-card feat">
         <div class="price-tier">— STARTER PLAN</div>
         <div class="price-amount">¥200,000<span>〜</span></div>
-        <p class="price-desc">小規模事業者向けの定番プラン。1〜5ページのコーポレートサイト/LP。</p>
+        <p class="price-desc">小規模事業者向けの定番プラン。<br class="br-sp">1〜5ページのコーポレートサイト/LP。</p>
         <ul class="price-list">
           <li>ヒアリング・構成設計</li>
           <li>レスポンシブ対応</li>
@@ -1223,7 +1269,7 @@ footer {
       <div class="price-card">
         <div class="price-tier">— MAINTENANCE</div>
         <div class="price-amount">¥5,000<span>/月〜</span></div>
-        <p class="price-desc">公開後の安心を月額で。小修正・更新までカバー。</p>
+        <p class="price-desc">公開後の安心を月額で。<br class="br-sp">小修正・更新までカバー。</p>
         <ul class="price-list">
           <li>月1回の小修正</li>
           <li>SSL・ドメイン管理</li>
@@ -1245,11 +1291,10 @@ footer {
   <div class="cta-blob c4"></div>
   <div class="wrap cta-inner">
     <h2>はじめの<em>一歩</em>、<br>一緒に。</h2>
-    <p>相談・お見積もりは無料です。まずは気軽にお声がけください。</p>
+    <p>相談・お見積もりは無料です。<br class="br-sp">まずは気軽にお声がけください。</p>
     <button class="btn btn-primary js-contact-open">
       お問い合わせフォームを開く <span class="arrow">→</span>
     </button>
-    <span class="cta-mail">info@nishihama-iron.jp</span>
   </div>
 </section>
 
@@ -1353,7 +1398,7 @@ footer {
 <script>
 /* ===== Loader ===== */
 window.addEventListener('load', () => {
-  setTimeout(() => document.body.classList.add('loaded'), 200);
+  setTimeout(() => document.body.classList.add('loaded'), 2700);
 });
 
 /* ===== Scroll progress & nav ===== */
