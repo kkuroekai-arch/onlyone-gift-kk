@@ -951,8 +951,24 @@ footer {
 }
 .form-success-icon { background: var(--teal); }
 .form-error-icon { background: var(--coral); }
-.form-success h3, .form-error h3 { font-size: 22px; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 12px; }
-.form-success p, .form-error p { color: var(--ink-mute); font-size: 14px; line-height: 1.8; }
+.form-success h3, .form-error h3 { font-size: 22px; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 14px; }
+.form-success p, .form-error p { color: var(--ink-mute); font-size: 15px; line-height: 1.85; }
+.form-success .sub-note, .form-error .sub-note {
+  font-size: 12.5px; color: var(--ink-light);
+  line-height: 1.75; margin-top: 16px;
+}
+.form-back-btn {
+  display: inline-block;
+  margin-top: 28px;
+  padding: 14px 34px;
+  border-radius: 999px;
+  background: var(--ink); color: #fff;
+  font-weight: 600; font-size: 14px;
+  font-family: var(--jp);
+  transition: background .3s, transform .2s;
+}
+.form-back-btn:hover { background: var(--blue); transform: translateY(-2px); }
+.form-back-btn:active { transform: translateY(0); }
 .form-note { font-size: 12px; color: var(--ink-light); margin-top: 16px; line-height: 1.7; }
 
 /* ========== Motion / Reveal system ========== */
@@ -1474,7 +1490,9 @@ footer {
         <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
       <h3>送信が完了しました</h3>
-      <p>お問い合わせありがとうございます。<br>確認メールをお送りしましたので、ご確認ください。<br>2営業日以内にご返信いたします。</p>
+      <p>お問い合わせいただき、<br class="br-sp">ありがとうございます。<br>担当者より2営業日以内に<br class="br-sp">ご返信いたします。</p>
+      <p class="sub-note">確認の自動返信メールをお送りしました。<br class="br-sp">届かない場合は迷惑メールフォルダもご確認ください。</p>
+      <button class="form-back-btn js-modal-close">閉じる</button>
     </div>
 
     <div class="form-error" id="formError">
@@ -1482,10 +1500,15 @@ footer {
         <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </div>
       <h3>送信に失敗しました</h3>
-      <p>恐れ入りますが、しばらく経ってから再度お試しいただくか、<br>下記メールアドレスまで直接ご連絡ください。<br><br><a href="mailto:info@nishihama-iron.jp" style="color:var(--blue);text-decoration:underline;">info@nishihama-iron.jp</a></p>
+      <p>恐れ入りますが、時間をおいて<br class="br-sp">再度お試しください。</p>
+      <p class="sub-note">お急ぎの場合は、下記まで直接ご連絡ください。</p>
+      <a href="mailto:info@nishihama-iron.jp" class="form-back-btn">info@nishihama-iron.jp へメール</a>
     </div>
   </div>
 </div>
+
+<!-- サイト設定 (GAS URL など) — 編集するのは config.js のほうです -->
+<script src="./config.js"></script>
 
 <script>
 /* ===== Loader ===== */
@@ -1641,9 +1664,10 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ===== Form submit (GAS) =====
-   ↓↓↓ GASをデプロイしたら、ここに URL を貼り付けてください ↓↓↓ */
-const GAS_URL = 'YOUR_GAS_WEB_APP_URL_HERE';
-/* ↑↑↑ 例: https://script.google.com/macros/s/AKfycb.../exec */
+   GAS の URL は config.js で設定します(このファイルではなく config.js を編集) */
+const GAS_URL = (window.GAS_URL && window.GAS_URL.indexOf('script.google.com') !== -1)
+  ? window.GAS_URL
+  : null;
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -1658,22 +1682,32 @@ form.addEventListener('submit', async (e) => {
   // Honeypot — bots fill this, humans don't
   if (form.website.value) return;
 
+  // Config check — if GAS isn't connected, show the error panel honestly
+  if (!GAS_URL) {
+    console.error('GAS_URL が config.js に設定されていません。config.js を確認してください。');
+    formPanel.style.display = 'none';
+    formError.classList.add('show');
+    return;
+  }
+
   submitBtn.classList.add('loading');
   submitBtn.disabled = true;
 
   try {
-    if (GAS_URL === 'YOUR_GAS_WEB_APP_URL_HERE') {
-      // Demo fallback when GAS isn't connected yet
-      console.warn('GAS_URL is not set. Form data:', Object.fromEntries(new FormData(form)));
-      await new Promise(r => setTimeout(r, 800));
-    } else {
-      const formData = new FormData(form);
-      await fetch(GAS_URL, {
-        method: 'POST',
-        body: formData,
-        mode: 'no-cors'
-      });
-    }
+    // application/x-www-form-urlencoded — GAS が最も確実に受け取れる形式
+    const params = new URLSearchParams();
+    params.append('name', name);
+    params.append('company', form.company.value.trim());
+    params.append('email', email);
+    params.append('phone', form.phone.value.trim());
+    params.append('message', message);
+
+    await fetch(GAS_URL, {
+      method: 'POST',
+      body: params,
+      mode: 'no-cors'
+    });
+
     // Success
     formPanel.style.display = 'none';
     formSuccess.classList.add('show');

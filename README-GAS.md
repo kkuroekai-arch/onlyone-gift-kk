@@ -44,23 +44,32 @@
 5. 「ウェブアプリURL」が表示される (例: `https://script.google.com/macros/s/AKfycb.../exec`)
 6. このURLを **コピー** しておく
 
-## ⑤ HTMLにURLを貼り付け
+## ⑤ config.js にURLを貼り付け
 
-`index.html` を開いて、次の行を探します:
+⚠️ URLを貼るのは **`config.js`** です(`index.html` ではありません)。
+こうすることで、今後 `index.html` を更新しても、URL設定が消えなくなります。
 
-```js
-const GAS_URL = 'YOUR_GAS_WEB_APP_URL_HERE';
-```
-
-これを、④でコピーしたURLに置き換えます:
+`config.js` を開いて、次の行を探します:
 
 ```js
-const GAS_URL = 'https://script.google.com/macros/s/AKfycb..../exec';
+window.GAS_URL = "YOUR_GAS_WEB_APP_URL_HERE";
 ```
+
+`YOUR_GAS_WEB_APP_URL_HERE` の部分を、④でコピーしたURLに置き換えます:
+
+```js
+window.GAS_URL = "https://script.google.com/macros/s/AKfycb..../exec";
+```
+
+ダブルクォート `"` は消さないように注意してください。
 
 保存して、ブラウザでサイトを開いて、お問い合わせフォームから送信テストをしてください。
 - 自分のメアドで送信 → 自動返信が届くか確認 ✅
 - `info@nishihama-iron.jp` (管理者宛て) にも通知メールが届くか確認 ✅
+
+> 💡 **重要:** 今後 `index.html` を新しいものに差し替えるときは、
+> `config.js` は **アップロードし直さない** でください。
+> `config.js` をそのまま残しておけば、URL設定はずっと保持されます。
 
 ---
 
