@@ -83,27 +83,59 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   background: var(--bg);
   z-index: 9999;
   display: flex; align-items: center; justify-content: center;
-  transition: opacity .8s var(--ease), visibility .8s var(--ease);
+  transition: opacity 1s var(--ease), visibility 1s var(--ease);
 }
 .loaded .loader { opacity: 0; visibility: hidden; }
-.loader-mark {
+.loader-inner {
+  display: flex; flex-direction: column;
+  align-items: center;
+}
+.loader-brand {
+  display: flex; align-items: baseline; gap: 12px;
   font-family: var(--en); font-weight: 800;
-  font-size: 28px; letter-spacing: -0.04em;
-  position: relative;
-  display: flex; align-items: baseline; gap: 6px;
+  letter-spacing: -0.04em;
+  overflow: hidden;
+  padding: 0 4px;
+  margin-bottom: 32px;
 }
-.loader-mark::after {
-  content: ''; position: absolute;
-  bottom: -8px; left: 0;
-  width: 100%; height: 2px;
+.loader-brand-name, .loader-brand-suffix {
+  display: inline-block;
+  transform: translateY(120%);
+  animation: loaderSlideUp .9s var(--ease) forwards;
+}
+.loader-brand-name { font-size: 40px; animation-delay: .2s; }
+.loader-brand-suffix {
+  font-size: 17px; font-weight: 500; color: var(--ink-light);
+  animation-delay: .5s;
+}
+@keyframes loaderSlideUp {
+  to { transform: translateY(0); }
+}
+.loader-bar {
+  width: 240px; height: 2px;
+  background: var(--line);
+  position: relative; overflow: hidden;
+  border-radius: 999px;
+  margin-bottom: 20px;
+}
+.loader-bar span {
+  position: absolute; inset: 0;
   background: linear-gradient(90deg, var(--yellow), var(--orange), var(--coral), var(--purple));
+  transform: scaleX(0);
   transform-origin: left;
-  animation: loaderBar 1.2s var(--ease) infinite;
+  animation: loaderFill 1.6s var(--ease) 1s forwards;
 }
-.loader-mark span { font-size: 14px; color: var(--ink-light); font-weight: 500; }
-@keyframes loaderBar {
-  0% { transform: scaleX(0); }
-  60%, 100% { transform: scaleX(1); }
+@keyframes loaderFill {
+  to { transform: scaleX(1); }
+}
+.loader-tag {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ink-light); letter-spacing: 0.25em;
+  opacity: 0;
+  animation: loaderFadeIn .7s var(--ease) 2s forwards;
+}
+@keyframes loaderFadeIn {
+  to { opacity: 1; }
 }
 
 /* ========== Custom Cursor (desktop only) ========== */
@@ -470,6 +502,17 @@ section { padding: 140px 0; position: relative; }
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 
+/* Responsive line break helpers */
+.br-sp { display: none; }
+.br-pc { display: inline; }
+@media (max-width: 640px) {
+  .br-sp { display: inline; }
+  .br-pc { display: none; }
+  .sec-title { font-size: 27px; letter-spacing: -0.03em; line-height: 1.32; }
+  /* Strengths has additional inner padding from the dark card, so reduce further */
+  .strengths .sec-title { font-size: 24px; line-height: 1.4; letter-spacing: -0.025em; }
+}
+
 /* ========== Service ========== */
 .service { background: var(--bg-card); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .service-grid {
@@ -495,16 +538,34 @@ section { padding: 140px 0; position: relative; }
 .svc-card:nth-child(3)::after { background: radial-gradient(circle, var(--coral), transparent 70%); }
 .svc-card:hover::after { opacity: 0.35; }
 .svc-icon-wrap {
-  width: 60px; height: 60px;
+  position: relative;
+  width: 68px; height: 68px;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 18px; margin-bottom: 28px; color: #fff;
-  transition: transform .5s var(--ease);
+  border-radius: 20px; margin-bottom: 30px; color: #fff;
+  transition: transform .5s var(--ease), box-shadow .4s;
 }
-.svc-card:hover .svc-icon-wrap { transform: rotate(-8deg) scale(1.05); }
-.svc-card:nth-child(1) .svc-icon-wrap { background: linear-gradient(135deg, var(--yellow), var(--orange)); color: var(--ink); }
-.svc-card:nth-child(2) .svc-icon-wrap { background: linear-gradient(135deg, var(--blue), var(--purple)); }
-.svc-card:nth-child(3) .svc-icon-wrap { background: linear-gradient(135deg, var(--coral), var(--pink)); }
-.svc-icon-wrap svg { width: 28px; height: 28px; }
+.svc-icon-wrap::before {
+  content: ''; position: absolute; inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(150deg, rgba(255,255,255,0.45), transparent 55%);
+  pointer-events: none;
+}
+.svc-card:hover .svc-icon-wrap { transform: rotate(-6deg) scale(1.08); }
+.svc-card:nth-child(1) .svc-icon-wrap {
+  background: linear-gradient(145deg, #FFD93D 0%, #FF9A3C 55%, #FF6B35 100%);
+  color: #1A1A1A;
+  box-shadow: 0 14px 28px -6px rgba(255, 140, 55, 0.55);
+}
+.svc-card:nth-child(2) .svc-icon-wrap {
+  background: linear-gradient(145deg, #4A8DFF 0%, #6366F1 55%, #A855F7 100%);
+  box-shadow: 0 14px 28px -6px rgba(99, 102, 241, 0.55);
+}
+.svc-card:nth-child(3) .svc-icon-wrap {
+  background: linear-gradient(145deg, #FF7A6B 0%, #FF4D6D 55%, #EC4899 100%);
+  box-shadow: 0 14px 28px -6px rgba(255, 77, 109, 0.55);
+}
+.svc-card:hover .svc-icon-wrap { box-shadow: 0 20px 36px -6px rgba(0,0,0,0.28); }
+.svc-icon-wrap svg { width: 32px; height: 32px; position: relative; z-index: 1; }
 .svc-card h3 { font-size: 23px; font-weight: 700; margin-bottom: 14px; letter-spacing: -0.025em; }
 .svc-card p { color: var(--ink-mute); font-size: 15px; line-height: 1.85; }
 .svc-tag {
@@ -902,7 +963,14 @@ footer {
 
 <!-- ========== Loader ========== -->
 <div class="loader">
-  <div class="loader-mark">K&amp;k<span>Co., Ltd.</span></div>
+  <div class="loader-inner">
+    <div class="loader-brand">
+      <span class="loader-brand-name">K&amp;k</span>
+      <span class="loader-brand-suffix">Co., Ltd.</span>
+    </div>
+    <div class="loader-bar"><span></span></div>
+    <div class="loader-tag">WEB · LP · PRODUCTION</div>
+  </div>
 </div>
 
 <!-- ========== Custom Cursor ========== -->
@@ -1043,14 +1111,14 @@ footer {
   <div class="wrap">
     <div class="sec-head">
       <span class="sec-label">SERVICE</span>
-      <h2 class="sec-title">3つの<em>サービス</em>で、<br>Webの不安をまるごと。</h2>
+      <h2 class="sec-title">3つの<em>サービス</em>で、<br>Webの悩みを解決。</h2>
     </div>
     <div class="service-grid">
       <div class="svc-card">
         <span class="svc-tag">01</span>
         <div class="svc-icon-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 8h18"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2.5" y="4" width="19" height="15" rx="2.5"/><path d="M2.5 8.5h19"/><circle cx="6" cy="6.25" r="0.6" fill="currentColor" stroke="none"/><circle cx="8.3" cy="6.25" r="0.6" fill="currentColor" stroke="none"/>
           </svg>
         </div>
         <h3>Webサイト制作</h3>
@@ -1059,8 +1127,8 @@ footer {
       <div class="svc-card">
         <span class="svc-tag">02</span>
         <div class="svc-icon-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2v20"/><path d="M6 8l6-6 6 6"/><path d="M6 16l6 6 6-6"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M9 8h6"/><path d="M9 12h6"/><path d="M9 16h3.5"/>
           </svg>
         </div>
         <h3>LP制作</h3>
@@ -1069,8 +1137,8 @@ footer {
       <div class="svc-card">
         <span class="svc-tag">03</span>
         <div class="svc-icon-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2a10 10 0 1 0 10 10"/><path d="M22 2L12 12"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.5l8 3v5.5c0 5-3.4 9-8 10.5C7.4 20 4 16 4 11V5.5l8-3z"/><path d="M8.8 11.8l2.2 2.2 4.2-4.4"/>
           </svg>
         </div>
         <h3>保守・運用</h3>
@@ -1085,7 +1153,7 @@ footer {
   <div class="wrap">
     <div class="sec-head">
       <span class="sec-label">WORKS</span>
-      <h2 class="sec-title"><em>制作実績</em>の<br>ご紹介。</h2>
+      <h2 class="sec-title"><em>制作実績</em>の<br class="br-pc">ご紹介。</h2>
     </div>
     <div class="works-grid">
       <article class="work">
@@ -1147,7 +1215,7 @@ footer {
     <div class="wrap">
       <div class="sec-head">
         <span class="sec-label">WHY K&amp;k</span>
-        <h2 class="sec-title">テンプレートじゃ作れない、<br><em>本当の強み</em>を引き出す。</h2>
+        <h2 class="sec-title">型にはまらない、<br><em>本当の強み</em>を引き出す。</h2>
       </div>
       <div class="str-grid">
         <div class="str-item">
@@ -1212,7 +1280,7 @@ footer {
       <div class="price-card feat">
         <div class="price-tier">— STARTER PLAN</div>
         <div class="price-amount">¥200,000<span>〜</span></div>
-        <p class="price-desc">小規模事業者向けの定番プラン。1〜5ページのコーポレートサイト/LP。</p>
+        <p class="price-desc">小規模事業者向けの定番プラン。<br class="br-sp">1〜5ページのコーポレートサイト/LP。</p>
         <ul class="price-list">
           <li>ヒアリング・構成設計</li>
           <li>レスポンシブ対応</li>
@@ -1223,7 +1291,7 @@ footer {
       <div class="price-card">
         <div class="price-tier">— MAINTENANCE</div>
         <div class="price-amount">¥5,000<span>/月〜</span></div>
-        <p class="price-desc">公開後の安心を月額で。小修正・更新までカバー。</p>
+        <p class="price-desc">公開後の安心を月額で。<br class="br-sp">小修正・更新までカバー。</p>
         <ul class="price-list">
           <li>月1回の小修正</li>
           <li>SSL・ドメイン管理</li>
@@ -1245,11 +1313,10 @@ footer {
   <div class="cta-blob c4"></div>
   <div class="wrap cta-inner">
     <h2>はじめの<em>一歩</em>、<br>一緒に。</h2>
-    <p>相談・お見積もりは無料です。まずは気軽にお声がけください。</p>
+    <p>相談・お見積もりは無料です。<br class="br-sp">まずは気軽にお声がけください。</p>
     <button class="btn btn-primary js-contact-open">
       お問い合わせフォームを開く <span class="arrow">→</span>
     </button>
-    <span class="cta-mail">info@nishihama-iron.jp</span>
   </div>
 </section>
 
@@ -1353,7 +1420,7 @@ footer {
 <script>
 /* ===== Loader ===== */
 window.addEventListener('load', () => {
-  setTimeout(() => document.body.classList.add('loaded'), 200);
+  setTimeout(() => document.body.classList.add('loaded'), 2700);
 });
 
 /* ===== Scroll progress & nav ===== */
