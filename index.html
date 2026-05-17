@@ -955,8 +955,74 @@ footer {
 .form-success p, .form-error p { color: var(--ink-mute); font-size: 14px; line-height: 1.8; }
 .form-note { font-size: 12px; color: var(--ink-light); margin-top: 16px; line-height: 1.7; }
 
-.reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
+/* ========== Motion / Reveal system ========== */
+.reveal {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 1s var(--ease), transform 1s var(--ease);
+  will-change: opacity, transform;
+}
 .reveal.in { opacity: 1; transform: translateY(0); }
+
+/* Directional variants */
+.reveal-left  { transform: translateX(-48px); }
+.reveal-right { transform: translateX(48px); }
+.reveal-scale { transform: scale(.9); }
+.reveal-left.in, .reveal-right.in { transform: translateX(0); }
+.reveal-scale.in { transform: scale(1); }
+
+/* Big-number pop (process & strengths) */
+.pop { opacity: 0; transform: translateY(20px) scale(.6); transform-origin: left bottom;
+  transition: opacity .7s var(--ease), transform .7s cubic-bezier(.34,1.56,.64,1); }
+.pop.in { opacity: 1; transform: translateY(0) scale(1); }
+
+/* Touch / tap feedback for cards */
+.work, .svc-card, .step, .price-card, .toc-item {
+  transition: transform .4s var(--ease), box-shadow .4s, border-color .3s;
+}
+@media (hover: none) {
+  .work:active, .svc-card:active, .step:active,
+  .price-card:active, .toc-item:active {
+    transform: scale(.975);
+    transition: transform .15s var(--ease);
+  }
+}
+
+/* Parallax-ready (composes with the float keyframe transform) */
+.blob { will-change: transform, translate; }
+
+/* Hero scroll hint */
+.scroll-hint {
+  position: absolute; left: 50%; bottom: 36px;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity .8s var(--ease) 1.4s;
+}
+.loaded .scroll-hint { opacity: 1; }
+.scroll-hint span {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.3em; color: var(--ink-light);
+}
+.scroll-hint-line {
+  width: 1.5px; height: 48px;
+  background: var(--line);
+  position: relative; overflow: hidden;
+  border-radius: 999px;
+}
+.scroll-hint-line::after {
+  content: ''; position: absolute;
+  left: 0; right: 0; top: 0; height: 40%;
+  background: linear-gradient(180deg, var(--orange), var(--coral));
+  border-radius: 999px;
+  animation: scrollDrop 2s var(--ease) infinite;
+}
+@keyframes scrollDrop {
+  0%   { transform: translateY(-100%); }
+  60%, 100% { transform: translateY(250%); }
+}
+@media (max-width: 640px) { .scroll-hint { bottom: 24px; } }
 </style>
 </head>
 <body>
@@ -1031,6 +1097,10 @@ footer {
         制作実績を見る
       </a>
     </div>
+  </div>
+  <div class="scroll-hint">
+    <span>SCROLL</span>
+    <div class="scroll-hint-line"></div>
   </div>
 </section>
 
@@ -1423,28 +1493,79 @@ window.addEventListener('load', () => {
   setTimeout(() => document.body.classList.add('loaded'), 2700);
 });
 
-/* ===== Scroll progress & nav ===== */
+/* ===== Scroll-driven effects (progress, nav, parallax) ===== */
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const progress = document.getElementById('progress');
 const nav = document.getElementById('nav');
-window.addEventListener('scroll', () => {
-  const h = document.documentElement;
-  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
-  progress.style.width = scrolled + '%';
-  nav.classList.toggle('scrolled', window.scrollY > 20);
-}, { passive: true });
+const heroInner = document.querySelector('.hero-inner');
+const blobs = Array.from(document.querySelectorAll('.hero .blob'));
+const blobSpeeds = [0.20, -0.14, 0.26, -0.18, 0.12];
 
-/* ===== Reveal on scroll ===== */
-const reveals = document.querySelectorAll('.sec-head, .svc-card, .work, .str-item, .step, .price-card, .cta-inner, .toc-item');
-reveals.forEach(el => el.classList.add('reveal'));
+let ticking = false;
+function onScroll() {
+  if (!ticking) { requestAnimationFrame(updateScroll); ticking = true; }
+}
+function updateScroll() {
+  const y = window.scrollY;
+  const h = document.documentElement;
+  const vh = window.innerHeight;
+
+  progress.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100 + '%';
+  nav.classList.toggle('scrolled', y > 20);
+
+  if (!reduceMotion) {
+    // Hero content drifts up + fades as you scroll
+    if (heroInner && y < vh) {
+      heroInner.style.transform = 'translateY(' + (y * 0.28) + 'px)';
+      heroInner.style.opacity = Math.max(0, 1 - y / (vh * 0.78));
+    }
+    // Colourful blobs parallax at different speeds (translate composes with the float animation)
+    if (y < vh * 1.6) {
+      blobs.forEach((b, i) => {
+        b.style.translate = '0 ' + (y * (blobSpeeds[i] || 0.15)) + 'px';
+      });
+    }
+  }
+  ticking = false;
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+updateScroll();
+
+/* ===== Reveal on scroll (directional + staggered) ===== */
+const revealGroups = [
+  { sel: '.sec-head',   cls: ['reveal'] },
+  { sel: '.toc-item',   cls: ['reveal', 'reveal-left'],  stagger: 80 },
+  { sel: '.svc-card',   cls: ['reveal'],                 stagger: 120 },
+  { sel: '.work',       cls: ['reveal', 'reveal-scale'], stagger: 150 },
+  { sel: '.str-item',   cls: ['reveal', 'reveal-left'],  stagger: 110 },
+  { sel: '.step',       cls: ['reveal'],                 stagger: 90 },
+  { sel: '.price-card', cls: ['reveal'],                 stagger: 130 },
+  { sel: '.cta-inner',  cls: ['reveal', 'reveal-scale'] },
+];
+revealGroups.forEach(g => {
+  document.querySelectorAll(g.sel).forEach((el, i) => {
+    el.classList.add(...g.cls);
+    if (g.stagger) el.style.transitionDelay = (i * g.stagger) + 'ms';
+  });
+});
+// Big numbers (process / strengths) pop in with a bounce
+document.querySelectorAll('.str-num, .step-num').forEach(el => {
+  el.classList.add('pop');
+  el.style.transitionDelay = '160ms';
+});
+
 const io = new IntersectionObserver((entries) => {
-  entries.forEach((e, i) => {
+  entries.forEach(e => {
     if (e.isIntersecting) {
-      setTimeout(() => e.target.classList.add('in'), i * 60);
+      e.target.classList.add('in');
       io.unobserve(e.target);
+      // Clear the stagger delay after reveal so it doesn't slow later hover transitions
+      setTimeout(() => { e.target.style.transitionDelay = ''; }, 1500);
     }
   });
-}, { threshold: 0.12 });
-reveals.forEach(el => io.observe(el));
+}, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+
+document.querySelectorAll('.reveal, .pop').forEach(el => io.observe(el));
 
 /* ===== Custom cursor (desktop only) ===== */
 const isTouch = window.matchMedia('(hover: none)').matches;
