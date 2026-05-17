@@ -12,4 +12,4 @@
    例: https://script.google.com/macros/s/AKfycb●●●●●●/exec
    ========================================================= */
 
-window.GAS_URL = "YOUR_GAS_WEB_APP_URL_HERE";
+window.GAS_URL = "https://script.google.com/macros/s/AKfycbwRzj6gUFoXQRLpDXlTcbFWWvCigsw6HKWC9sBt4PoiVtMq54ip2DU5Hfbk1c-fdrKInw/exec";
